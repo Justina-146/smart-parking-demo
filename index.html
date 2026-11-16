@@ -9,15 +9,15 @@
     <style>
         body {
             margin: 0;
-            background-color: #101827;
+            background: #101827;
             color: white;
             font-family: Arial, sans-serif;
             text-align: center;
         }
 
         header {
-            background-color: #1b2940;
-            padding: 30px;
+            background: #1b2940;
+            padding: 30px 15px;
         }
 
         h1 {
@@ -27,12 +27,43 @@
 
         .container {
             max-width: 1100px;
-            margin: 40px auto;
+            margin: 35px auto;
             padding: 0 20px;
         }
 
+        p {
+            color: #becbdc;
+            line-height: 1.6;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .card {
+            background: #202f45;
+            border-radius: 12px;
+            padding: 20px 8px;
+        }
+
+        .card h2 {
+            font-size: 36px;
+            margin: 10px 0;
+        }
+
+        .card p {
+            margin: 0;
+        }
+
+        #available {
+            color: #4ade80;
+        }
+
         .video-box {
-            background-color: #202f45;
+            background: #202f45;
             padding: 12px;
             border-radius: 12px;
         }
@@ -43,9 +74,45 @@
             border-radius: 8px;
         }
 
-        p {
-            color: #becbdc;
-            line-height: 1.6;
+        .spaces {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .space {
+            padding: 18px 5px;
+            border-radius: 10px;
+            background: #475569;
+            font-weight: bold;
+        }
+
+        .occupied {
+            background: #b94343;
+        }
+
+        .empty {
+            background: #168457;
+        }
+
+        @media (max-width: 600px) {
+            .card h2 {
+                font-size: 27px;
+            }
+
+            .card p {
+                font-size: 12px;
+            }
+
+            .space {
+                font-size: 11px;
+                padding: 12px 2px;
+            }
+
+            .spaces {
+                gap: 5px;
+            }
         }
     </style>
 </head>
@@ -56,19 +123,132 @@
         <p>AI Vision 기반 스마트 주차 정보 제공 시스템</p>
     </header>
 
-    <div class="container">
+    <main class="container">
         <h2>주차장 점유 현황</h2>
 
+        <!-- 주차 현황 숫자 -->
+        <div class="dashboard">
+            <div class="card">
+                <p>전체 주차면</p>
+                <h2 id="total">-</h2>
+            </div>
+
+            <div class="card">
+                <p>점유 대수</p>
+                <h2 id="occupied">-</h2>
+            </div>
+
+            <div class="card">
+                <p>주차 가능</p>
+                <h2 id="available">-</h2>
+            </div>
+        </div>
+
+        <!-- 주차장 영상 -->
         <div class="video-box">
-            <video controls autoplay muted loop playsinline>
+            <video id="parkingVideo"
+                   controls autoplay muted loop playsinline>
                 <source src="parking_video.mp4" type="video/mp4">
                 동영상을 재생할 수 없습니다.
             </video>
         </div>
 
+        <!-- 개별 주차면 상태 -->
+        <h2>주차면별 상태</h2>
+
+        <div class="spaces">
+            <div class="space" id="space1">1번 확인 중</div>
+            <div class="space" id="space2">2번 확인 중</div>
+            <div class="space" id="space3">3번 확인 중</div>
+            <div class="space" id="space4">4번 확인 중</div>
+            <div class="space" id="space5">5번 확인 중</div>
+        </div>
+
+        <p id="statusMessage">주차 데이터를 불러오는 중...</p>
         <p>빨간색: 주차 중 | 초록색: 빈자리</p>
-        <p>YOLOv5와 OpenCV를 이용한 주차면 5개 점유 분석</p>
-        <p>본 영상은 미리 분석한 시연용 영상입니다.</p>
-    </div>
+        <p>YOLOv5와 OpenCV를 이용한 주차면 점유 분석</p>
+        <p>미리 분석한 시연용 영상이며 실제 실시간 CCTV는 아닙니다.</p>
+    </main>
+
+    <script>
+        const video = document.getElementById("parkingVideo");
+        const statusMessage = document.getElementById("statusMessage");
+
+        let parkingData = null;
+
+        // GitHub에 업로드한 JSON 파일 읽기
+        async function loadParkingData() {
+            try {
+                const response = await fetch("./parking_status.json");
+
+                if (!response.ok) {
+                    throw new Error("JSON 파일을 찾을 수 없습니다.");
+                }
+
+                parkingData = await response.json();
+
+                statusMessage.textContent =
+                    "영상 재생 시간에 따라 주차 현황이 자동 갱신됩니다.";
+
+                updateParkingStatus();
+
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent =
+                    "주차 상태 데이터를 불러오지 못했습니다.";
+            }
+        }
+
+        // 영상의 현재 시간에 해당하는 주차 정보 표시
+        function updateParkingStatus() {
+            if (!parkingData || !parkingData.frames.length) {
+                return;
+            }
+
+            const frameIndex = Math.min(
+                parkingData.frames.length - 1,
+                Math.max(
+                    0,
+                    Math.floor(video.currentTime * parkingData.fps)
+                )
+            );
+
+            const current = parkingData.frames[frameIndex];
+
+            document.getElementById("total").textContent =
+                current.total;
+
+            document.getElementById("occupied").textContent =
+                current.occupied;
+
+            document.getElementById("available").textContent =
+                current.available;
+
+            // 1~5번 주차면의 색상과 문구 변경
+            current.spaces.forEach(function(space) {
+                const element = document.getElementById(
+                    "space" + space.id
+                );
+
+                if (!element) return;
+
+                if (space.occupied) {
+                    element.textContent = space.id + "번 점유";
+                    element.className = "space occupied";
+                } else {
+                    element.textContent = space.id + "번 빈자리";
+                    element.className = "space empty";
+                }
+            });
+        }
+
+        // 영상 재생과 주차 현황 동기화
+        video.addEventListener("timeupdate", updateParkingStatus);
+        video.addEventListener("seeked", updateParkingStatus);
+        video.addEventListener("loadedmetadata", updateParkingStatus);
+        video.addEventListener("play", updateParkingStatus);
+
+        loadParkingData();
+    </script>
 </body>
 </html>
