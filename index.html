@@ -4,37 +4,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Parking</title>
+    <title>SMART PARKING</title>
+
     <style>
         body {
+            margin: 0;
             background-color: #101827;
             color: white;
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
         }
 
         header {
             background-color: #1b2940;
-            padding: 40px;
+            padding: 30px;
         }
 
-        main {
-            padding: 50px 20px;
+        h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .video-box {
+            background-color: #202f45;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        video {
+            display: block;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        p {
+            color: #becbdc;
+            line-height: 1.6;
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>SMART PARKING</h1>
         <p>AI Vision 기반 스마트 주차 정보 제공 시스템</p>
     </header>
 
-    <main>
-        <h2>스마트 주차 웹사이트</h2>
-        <p>YOLOv5 + OpenCV 기반 주차면 점유 분석</p>
-        <p>현재 웹사이트를 개발 중입니다.</p>
-    </main>
+    <div class="container">
+        <h2>주차장 점유 현황</h2>
+
+        <div class="video-box">
+            <video controls autoplay muted loop playsinline>
+                <source src="parking_video.mp4" type="video/mp4">
+                동영상을 재생할 수 없습니다.
+            </video>
+        </div>
+
+        <p>빨간색: 주차 중 | 초록색: 빈자리</p>
+        <p>YOLOv5와 OpenCV를 이용한 주차면 5개 점유 분석</p>
+        <p>본 영상은 미리 분석한 시연용 영상입니다.</p>
+    </div>
 </body>
 </html>
-
